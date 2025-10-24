@@ -1,0 +1,31 @@
+---
+- name: Build and run Docker container
+  hosts: localhost
+  become: true
+  tasks:
+    - name: Ensure Docker is installed
+      apt:
+        name: docker.io
+        state: present
+        update_cache: yes
+
+    - name: Add user to docker group
+      user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: yes
+
+    - name: Build Docker image
+      community.docker.docker_image:
+        name: web-db-image
+        build:
+          path: .
+
+    - name: Run Docker container
+      community.docker.docker_container:
+        name: web-db-container
+        image: web-db-image
+        state: started
+        ports:
+          - "80:80"
+          - "3306:3306"
